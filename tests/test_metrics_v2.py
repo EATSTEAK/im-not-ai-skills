@@ -1,4 +1,4 @@
-"""Tests for humanize-ko v2.0 metrics module.
+"""Tests for humanize-korean v2.0 metrics module.
 
 Runs under pytest OR `python -m unittest`. Imports both the v1.6 metrics
 (for regression checks) and the v2.0 metrics_v2 from this workspace.
@@ -18,12 +18,10 @@ import tempfile
 import unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
+PROJECT_ROOT = os.path.abspath(os.path.join(HERE, ".."))
 
-# v1.6 module location
-V1_DIR = os.path.join(
-    PROJECT_ROOT, ".claude", "skills", "humanize-korean", "references"
-)
+# skills.sh package script location
+V1_DIR = os.path.join(PROJECT_ROOT, "skills", "humanize-korean", "scripts")
 sys.path.insert(0, V1_DIR)
 sys.path.insert(0, HERE)
 
@@ -31,9 +29,11 @@ import metrics  # noqa: E402  (v1.6)
 import metrics_v2  # noqa: E402  (v2.0 superset)
 
 BASELINE_PATH = os.path.join(
-    PROJECT_ROOT, "_workspace", "v1.6-2026-05-06", "02_katfish_baseline.json"
+    PROJECT_ROOT, "skills", "humanize-korean", "references", "baseline.json"
 )
-BASELINE_V2_PATH = os.path.join(HERE, "baseline_v2_diff.json")
+BASELINE_V2_PATH = os.path.join(
+    PROJECT_ROOT, "skills", "humanize-korean", "references", "baseline_v2.json"
+)
 
 
 # ===========================================================================

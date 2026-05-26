@@ -7,10 +7,14 @@ keeps its 4-tool-call cap (Read input + Read rules + Write final + Write
 summary) because the metrics block is folded into the same input file.
 
 Inputs:
-  --run-dir DIR   existing run directory containing 01_input.txt
+  --workspace-root DIR
+                  project/workspace directory where runtime outputs belong
+                  (default: current working directory).
+  --run-dir DIR   existing run directory containing 01_input.txt. Relative
+                  paths resolve under --workspace-root.
   --text STR      ad-hoc text; if --run-dir is omitted, a new run dir
-                  `_workspace/<YYYY-MM-DD>-NNN/` is created and 01_input.txt
-                  written.
+                  `{workspace_root}/_workspace/<YYYY-MM-DD>-NNN/` is created
+                  and 01_input.txt written.
   --genre STR     essay|column|report|blog|abstract|... (default: essay)
 
 Outputs (in {run_dir}):
@@ -36,13 +40,11 @@ import traceback
 from datetime import date
 from pathlib import Path
 
-# Resolve project layout. This file lives at:
-#   {project_root}/scripts/prepare_monolith_input.py
-# metrics.py is at:
-#   {project_root}/.claude/skills/humanize-korean/references/metrics.py
+# Resolve skill layout. This file lives at:
+#   {skill_root}/scripts/prepare_monolith_input.py
+# metrics.py and metrics_v2.py live next to it in {skill_root}/scripts/.
 HERE = Path(__file__).resolve().parent
-PROJECT_ROOT = HERE.parent
-METRICS_DIR = PROJECT_ROOT / ".claude" / "skills" / "humanize-korean" / "references"
+METRICS_DIR = HERE
 
 # Make metrics.py importable without polluting global state.
 sys.path.insert(0, str(METRICS_DIR))
@@ -74,16 +76,18 @@ def _next_run_dir(workspace: Path) -> Path:
         n += 1
 
 
-def _resolve_run_dir(run_dir_arg: str | None, text_arg: str | None) -> Path:
+def _resolve_run_dir(
+    run_dir_arg: str | None, text_arg: str | None, workspace_root: Path
+) -> Path:
     if run_dir_arg:
         rd = Path(run_dir_arg)
         if not rd.is_absolute():
-            rd = PROJECT_ROOT / rd
+            rd = workspace_root / rd
         rd.mkdir(parents=True, exist_ok=True)
         return rd
     if text_arg is None:
         raise SystemExit("Either --run-dir or --text is required")
-    workspace = PROJECT_ROOT / "_workspace"
+    workspace = workspace_root / "_workspace"
     rd = _next_run_dir(workspace)
     rd.mkdir(parents=True, exist_ok=True)
     return rd
@@ -184,6 +188,11 @@ def _render_combined(text: str, metrics_obj: dict | None) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="Humanize KR v1.6 monolith input shim")
+    p.add_argument(
+        "--workspace-root",
+        default=None,
+        help="Workspace for runtime outputs (default: current working directory)",
+    )
     p.add_argument("--run-dir", help="Existing run directory (relative ok)")
     p.add_argument("--text", help="Inline text input (creates new run dir)")
     p.add_argument("--genre", default="essay", help="Genre hint (default: essay)")
@@ -194,7 +203,10 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = p.parse_args(argv)
 
-    run_dir = _resolve_run_dir(args.run_dir, args.text)
+    workspace_root = (
+        Path(args.workspace_root).resolve() if args.workspace_root else Path.cwd()
+    )
+    run_dir = _resolve_run_dir(args.run_dir, args.text, workspace_root)
     input_path = run_dir / "01_input.txt"
 
     # Ensure 01_input.txt exists.

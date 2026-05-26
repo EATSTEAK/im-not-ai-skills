@@ -12,12 +12,12 @@ approximated with regex + suffix dictionaries (한자어 -성·-적·-화·-도�
 
 Versioning:
 - v1.6 8 functions (comma_inclusion_rate ... lexical_diversity) are imported
-  *as-is* from references/metrics.py (signature + return preserved). DO NOT
+  *as-is* from scripts/metrics.py (signature + return preserved). DO NOT
   redefine them here. Regression-safe.
 - v2.0 adds 14 NEW pure functions for post-editese + T1~T8 detection.
 
-This file lives in `_workspace/v2.0-YYYY-MM-DD/03_metrics/`. Phase 6
-integrator will merge it into the project's references/metrics.py.
+This file lives in `skills/humanize-korean/scripts/` and reads bundled
+baselines from `skills/humanize-korean/references/`.
 
 CLI:
     python metrics_v2.py --input run/01_input.txt \
@@ -41,10 +41,7 @@ from typing import Any
 # ---------------------------------------------------------------------------
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_PROJECT_ROOT = os.path.abspath(os.path.join(_HERE, "..", "..", ".."))
-_V1_METRICS_DIR = os.path.join(
-    _PROJECT_ROOT, ".claude", "skills", "humanize-korean", "references"
-)
+_V1_METRICS_DIR = _HERE
 if _V1_METRICS_DIR not in sys.path:
     sys.path.insert(0, _V1_METRICS_DIR)
 
@@ -618,7 +615,7 @@ def interference_index(text: str) -> dict[str, Any]:
 
 
 def _default_baseline_v2_path() -> str:
-    return os.path.join(_HERE, "baseline_v2_diff.json")
+    return os.path.join(_HERE, "..", "references", "baseline_v2.json")
 
 
 def _load_baseline_v2(path: str | None) -> dict[str, Any]:

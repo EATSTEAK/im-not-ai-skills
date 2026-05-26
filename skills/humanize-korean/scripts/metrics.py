@@ -205,8 +205,8 @@ def lexical_diversity(text: str) -> float:
 
 def _default_baseline_path() -> str:
     here = os.path.dirname(os.path.abspath(__file__))
-    # Baseline ships next to metrics.py: references/baseline.json
-    return os.path.join(here, "baseline.json")
+    # Baseline ships in the skill's references directory.
+    return os.path.join(here, "..", "references", "baseline.json")
 
 
 def _load_baseline(path: str | None) -> dict[str, Any]:
